@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #0d0d0f;
+  --surface: #16161a;
+  --surface2: #1e1e24;
+  --border: rgba(255,255,255,0.07);
+  --text: #f0eff4;
+  --muted: #6b6b7b;
+  --accent: #c9a84c;
+  --accent2: #e8c97a;
+  --green: #3ddba0;
+  --yellow: #f5c842;
+  --orange: #f59342;
+  --red: #f05252;
+  --danger: #c0392b;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text);
+}
+
+body::before {
+  content: '';
+  position: fixed; inset: 0; z-index: 0;
+  background:
+    radial-gradient(ellipse 60% 50% at 20% 10%, rgba(201,168,76,0.07) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 40% at 80% 90%, rgba(61,219,160,0.05) 0%, transparent 70%);
+  pointer-events: none;
+}
+
+.app { position: relative; z-index: 1; width: 440px; max-width: 95vw; }
+
+.card {
+  background: var(--surface);
+  border-radius: 24px;
+  padding: 40px 36px;
+  border: 1px solid var(--border);
+  box-shadow: 0 32px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03);
+  animation: riseIn 0.5s cubic-bezier(0.22,1,0.36,1);
+}
+@keyframes riseIn { from{opacity:0;transform:translateY(24px);} to{opacity:1;transform:translateY(0);} }
+
+.logo-wrap { text-align: center; margin-bottom: 28px; }
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 2rem; font-weight: 900;
+  color: var(--accent);
+  letter-spacing: 1px;
+}
+.logo span { color: var(--text); }
+.tagline { font-size: 0.78rem; font-weight: 500; color: var(--muted); letter-spacing: 1.5px; text-transform: uppercase; margin-top: 4px; }
+
+.steps { display: flex; justify-content: center; gap: 8px; margin-bottom: 28px; }
+.step-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--surface2); border: 1px solid var(--border); transition: all 0.3s; }
+.step-dot.active { background: var(--accent); border-color: var(--accent); transform: scale(1.4); }
+.step-dot.done { background: var(--green); border-color: var(--green); }
+
+h2 { font-family: 'Playfair Display', serif; font-size: 1.3rem; font-weight: 700; color: var(--text); margin-bottom: 20px; text-align: center; }
+
+.form-group { margin-bottom: 14px; }
+label { display: block; font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 7px; }
+input, select {
+  width: 100%; padding: 13px 16px;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 500;
+  outline: none; transition: border-color 0.2s, box-shadow 0.2s; appearance: none;
+}
+input:focus, select:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(201,168,76,0.12); }
+input::placeholder { color: var(--muted); }
+select option { background: var(--surface2); }
+
+.row { display: flex; gap: 10px; }
+.row .form-group { flex: 1; }
+
+.sex-group { display: flex; gap: 8px; }
+.sex-btn {
+  flex: 1; padding: 11px 8px; border-radius: 12px;
+  border: 1px solid var(--border); background: var(--surface2);
+  color: var(--muted); font-family: 'DM Sans', sans-serif;
+  font-size: 0.88rem; font-weight: 600; cursor: pointer; transition: all 0.2s; text-align: center;
+}
+.sex-btn:hover { border-color: var(--accent); color: var(--accent); }
+.sex-btn.selected { background: rgba(201,168,76,0.12); border-color: var(--accent); color: var(--accent); }
+
+.btn {
+  width: 100%; padding: 14px; border-radius: 12px; border: none;
+  background: var(--accent); color: #0d0d0f;
+  font-family: 'DM Sans', sans-serif; font-size: 0.95rem; font-weight: 700;
+  cursor: pointer; letter-spacing: 0.3px;
+  transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+  box-shadow: 0 4px 20px rgba(201,168,76,0.3);
+  margin-top: 8px;
+}
+.btn:hover { background: var(--accent2); transform: translateY(-1px); box-shadow: 0 8px 28px rgba(201,168,76,0.4); }
+.btn:active { transform: scale(0.98); }
+
+.btn-ghost {
+  background: transparent; border: 1px solid var(--border); color: var(--muted);
+  box-shadow: none; margin-top: 0;
+}
+.btn-ghost:hover { border-color: var(--muted); color: var(--text); background: transparent; box-shadow: none; }
+
+.switch-text { text-align: center; font-size: 0.85rem; color: var(--muted); margin-top: 14px; }
+.switch-text span { color: var(--accent); font-weight: 600; cursor: pointer; }
+
+.error { color: var(--red); font-size: 0.78rem; font-weight: 500; margin-top: 4px; display: none; }
+.error.show { display: block; }
+
+.tracker-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
+.tracker-top .logo { font-size: 1.3rem; }
+.user-pill { font-size: 0.78rem; font-weight: 600; color: var(--accent); background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.2); border-radius: 20px; padding: 5px 12px; }
+
+.vibe-section { display: flex; flex-direction: column; align-items: center; margin-bottom: 24px; }
+.orb-wrap { position: relative; width: 120px; height: 120px; margin-bottom: 14px; }
+.orb {
+  width: 120px; height: 120px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 35%, rgba(255,255,255,0.18), transparent 60%), var(--green);
+  box-shadow: 0 0 40px rgba(61,219,160,0.35), 0 0 80px rgba(61,219,160,0.12);
+  transition: background 1s ease, box-shadow 1s ease;
+  display: flex; align-items: center; justify-content: center;
+  animation: breathe 4s ease-in-out infinite;
+}
+@keyframes breathe { 0%,100%{transform:scale(1);} 50%{transform:scale(1.04);} }
+.orb-icon { font-size: 2.6rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3)); }
+.vibe-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 4px; }
+.vibe-status { font-family: 'Playfair Display', serif; font-size: 1.15rem; font-weight: 700; color: var(--green); transition: color 0.8s; text-align: center; }
+
+.gauge-strip-wrap { width: 100%; margin-bottom: 6px; }
+.gauge-strip {
+  width: 100%; height: 6px; border-radius: 99px;
+  background: linear-gradient(to right, var(--green) 0%, var(--yellow) 40%, var(--orange) 65%, var(--red) 85%, var(--danger) 100%);
+  position: relative;
+}
+.gauge-cursor {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  width: 14px; height: 14px; border-radius: 50%;
+  background: var(--text); border: 2px solid var(--bg);
+  box-shadow: 0 0 8px rgba(255,255,255,0.4);
+  transition: left 0.8s cubic-bezier(0.34,1.56,0.64,1);
+  left: 0%;
+}
+.gauge-labels { display: flex; justify-content: space-between; font-size: 0.68rem; color: var(--muted); font-weight: 500; margin-top: 4px; margin-bottom: 16px; }
+
+.section-label { font-size: 0.72rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.2px; margin-bottom: 10px; }
+.drink-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 18px; }
+.drink-btn {
+  padding: 16px 10px; border-radius: 16px;
+  border: 1px solid var(--border); background: var(--surface2);
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  font-weight: 600; font-size: 0.88rem; color: var(--muted);
+  transition: all 0.2s; text-align: center;
+  display: flex; flex-direction: column; align-items: center; gap: 5px;
+}
+.drink-btn .d-emoji { font-size: 1.8rem; }
+.drink-btn .d-name { color: var(--text); font-weight: 600; font-size: 0.88rem; }
+.drink-btn .d-abv { font-size: 0.68rem; color: var(--muted); }
+.drink-btn:hover { border-color: var(--accent); background: rgba(201,168,76,0.06); transform: translateY(-2px); }
+.drink-btn:active { transform: scale(0.97); }
+.drink-btn.flash { animation: flashPop 0.35s ease; }
+@keyframes flashPop { 0%{transform:scale(1);} 50%{transform:scale(0.92);border-color:var(--accent);background:rgba(201,168,76,0.18);} 100%{transform:scale(1);} }
+
+.log-scroll { max-height: 110px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-right: 2px; margin-bottom: 14px; }
+.log-scroll::-webkit-scrollbar { width: 3px; }
+.log-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+.log-item {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--surface2); border: 1px solid var(--border);
+  border-radius: 10px; padding: 8px 13px;
+  font-size: 0.82rem; font-weight: 500; color: var(--text);
+  animation: slideIn 0.2s ease;
+}
+@keyframes slideIn { from{opacity:0;transform:translateX(-8px);} to{opacity:1;transform:translateX(0);} }
+.log-time { font-size: 0.7rem; color: var(--muted); }
+.empty-log { text-align: center; color: var(--muted); font-size: 0.82rem; padding: 10px; }
+
+.divider { height: 1px; background: var(--border); margin: 14px 0; }
+
+.popup-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(6px); z-index: 100;
+  display: flex; align-items: center; justify-content: center;
+  animation: fadeO 0.25s ease;
+}
+@keyframes fadeO { from{opacity:0;} to{opacity:1;} }
+.popup-overlay.hidden { display: none; }
+.popup-box {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 24px; padding: 32px 28px; max-width: 320px; width: 90%;
+  text-align: center; box-shadow: 0 40px 80px rgba(0,0,0,0.7);
+  animation: riseIn 0.4s cubic-bezier(0.22,1,0.36,1);
+}
+.popup-icon-big { font-size: 2.8rem; margin-bottom: 10px; }
+.popup-title { font-family: 'Playfair Display', serif; font-size: 1.3rem; color: var(--accent); margin-bottom: 12px; }
+.popup-msg { font-size: 0.9rem; font-weight: 400; color: #b0b0c0; line-height: 1.6; margin-bottom: 20px; min-height: 64px; }
+.dot-row { display: flex; gap: 6px; justify-content: center; align-items: center; min-height: 64px; margin-bottom: 20px; }
+.dot-pulse { width: 8px; height: 8px; border-radius: 50%; background: var(--accent); animation: dpulse 1.1s ease-in-out infinite; }
+.dot-pulse:nth-child(2){animation-delay:0.18s;} .dot-pulse:nth-child(3){animation-delay:0.36s;}
+@keyframes dpulse { 0%,80%,100%{transform:scale(0.5);opacity:0.3;} 40%{transform:scale(1);opacity:1;} }
+.popup-ok { padding: 12px 32px; border-radius: 10px; border: none; background: var(--accent); color: #0d0d0f; font-family: 'DM Sans', sans-serif; font-weight: 700; font-size: 0.9rem; cursor: pointer; box-shadow: 0 4px 16px rgba(201,168,76,0.3); transition: background 0.2s; }
+.popup-ok:hover { background: var(--accent2); }
+
+.summary-wrap { text-align: center; }
+.summary-stat { display: inline-block; background: var(--surface2); border: 1px solid var(--border); border-radius: 14px; padding: 14px 20px; margin: 6px; }
+.summary-stat .s-num { font-family: 'Playfair Display', serif; font-size: 1.8rem; color: var(--accent); }
+.summary-stat .s-lbl { font-size: 0.72rem; color: var(--muted); font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+.summary-msg { font-size: 0.88rem; color: var(--muted); line-height: 1.6; margin: 16px 0; }
+
+.screen { animation: riseIn 0.35s cubic-bezier(0.22,1,0.36,1); }
+</style>
+</head>
+<body>
+
+<!-- POPUP -->
+<div class="popup-overlay hidden" id="popup">
+  <div class="popup-box">
+    <div class="popup-icon-big" id="popupIcon">⚠️</div>
+    <div class="popup-title" id="popupTitle">Heads Up</div>
+    <div class="dot-row hidden" id="popupLoading">
+      <div class="dot-pulse"></div><div class="dot-pulse"></div><div class="dot-pulse"></div>
+    </div>
+    <div class="popup-msg" id="popupMsg"></div>
+    <button class="popup-ok" onclick="closePopup()">Got it</button>
+  </div>
+</div>
+
+<div class="app">
+<div class="card">
+
+  <div class="logo-wrap">
+    <div class="logo">Bar <span>Buddy</span> 🥂</div>
+    <div class="tagline">Your smart night-out companion</div>
+  </div>
+
+  <div class="steps" id="stepDots">
+    <div class="step-dot active" id="dot0"></div>
+    <div class="step-dot" id="dot1"></div>
+    <div class="step-dot" id="dot2"></div>
+    <div class="step-dot" id="dot3"></div>
+  </div>
+
+  <!-- AUTH -->
+  <div id="screen-auth" class="screen">
+    <h2 id="authTitle">Create Account</h2>
+    <div class="form-group">
+      <label>Email</label>
+      <input type="email" id="email" placeholder="you@example.com"/>
+      <div class="error" id="emailError">Please enter a valid email.</div>
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="password" placeholder="At least 6 characters"/>
+      <div class="error" id="passwordError">Password must be at least 6 characters.</div>
+    </div>
+    <div class="form-group" id="confirmGroup">
+      <label>Confirm Password</label>
+      <input type="password" id="confirmPassword" placeholder="Repeat your password"/>
+      <div class="error" id="confirmError">Passwords don't match.</div>
+    </div>
+    <button class="btn" id="authBtn" onclick="handleAuth()">Continue</button>
+    <div class="switch-text" id="switchText">Already have an account? <span onclick="toggleMode()">Sign in</span></div>
+  </div>
+
+  <!-- PROFILE -->
+  <div id="screen-profile" class="screen" style="display:none;">
+    <h2>Your Profile</h2>
+    <div class="row">
+      <div class="form-group">
+        <label>Height (in)</label>
+        <input type="number" id="height" placeholder="e.g. 68" min="48" max="96"/>
+        <div class="error" id="heightError">Enter a valid height.</div>
+      </div>
+      <div class="form-group">
+        <label>Weight (lbs)</label>
+        <input type="number" id="weight" placeholder="e.g. 155" min="50" max="500"/>
+        <div class="error" id="weightError">Enter a valid weight.</div>
+      </div>
+    </div>
+    <div class="form-group">
+      <label>Biological Sex</label>
+      <div class="sex-group">
+        <button class="sex-btn" id="sexM" onclick="selectSex('M')">Male</button>
+        <button class="sex-btn" id="sexF" onclick="selectSex('F')">Female</button>
+        <button class="sex-btn" id="sexO" onclick="selectSex('O')">Other</button>
+      </div>
+      <div class="error" id="sexError">Please make a selection.</div>
+    </div>
+    <div class="form-group">
+      <label>Weekly Alcohol Consumption</label>
+      <select id="drinkFreq">
+        <option value="" disabled selected>Select drinks per week</option>
+        <option value="0-2">0–2 drinks (Light)</option>
+        <option value="3-5">3–5 drinks (Moderate)</option>
+        <option value="6-10">6–10 drinks (Regular)</option>
+        <option value="10+">10+ drinks (Heavy)</option>
+      </select>
+      <div class="error" id="drinkError">Please make a selection.</div>
+    </div>
+    <button class="btn" onclick="handleProfile()">Start Tracking</button>
+  </div>
+
+  <!-- TRACKER -->
+  <div id="screen-tracker" class="screen" style="display:none;">
+    <div class="tracker-top">
+      <div class="logo" style="font-size:1.2rem;">Bar Buddy 🥂</div>
+      <div class="user-pill" id="userChip">—</div>
+    </div>
+
+    <div class="vibe-section">
+      <div class="orb-wrap">
+        <div class="orb" id="orb"><span class="orb-icon" id="orbIcon">😊</span></div>
+      </div>
+      <div class="vibe-label">Current Vibe</div>
+      <div class="vibe-status" id="vibeStatus">Feeling Great</div>
+    </div>
+
+    <div class="gauge-strip-wrap">
+      <div class="gauge-strip">
+        <div class="gauge-cursor" id="gaugeCursor"></div>
+      </div>
+      <div class="gauge-labels">
+        <span>Sober</span><span>Buzzed</span><span>Tipsy</span><span>Intoxicated</span>
+      </div>
+    </div>
+
+    <div class="section-label">Log a Drink</div>
+    <div class="drink-grid">
+      <button class="drink-btn" id="btn-beer" onclick="logDrink('beer')">
+        <span class="d-emoji">🍺</span>
+        <span class="d-name">Beer</span>
+        <span class="d-abv">~5% ABV · 12oz</span>
+      </button>
+      <button class="drink-btn" id="btn-wine" onclick="logDrink('wine')">
+        <span class="d-emoji">🍷</span>
+        <span class="d-name">Wine</span>
+        <span class="d-abv">~12% ABV · 5oz</span>
+      </button>
+      <button class="drink-btn" id="btn-shot" onclick="logDrink('shot')">
+        <span class="d-emoji">🥃</span>
+        <span class="d-name">Shot</span>
+        <span class="d-abv">~40% ABV · 1.5oz</span>
+      </button>
+      <button class="drink-btn" id="btn-cocktail" onclick="logDrink('cocktail')">
+        <span class="d-emoji">🍹</span>
+        <span class="d-name">Cocktail</span>
+        <span class="d-abv">~15% ABV · 6oz</span>
+      </button>
+    </div>
+
+    <div class="section-label">Drink Log</div>
+    <div class="log-scroll" id="logList">
+      <div class="empty-log">No drinks logged yet</div>
+    </div>
+
+    <div class="divider"></div>
+    <button class="btn btn-ghost" onclick="endNight()">End Night</button>
+  </div>
+
+  <!-- SUMMARY -->
+  <div id="screen-summary" class="screen" style="display:none;">
+    <h2>Night's Over 🌙</h2>
+    <div class="summary-wrap" id="summaryContent"></div>
+    <div class="divider"></div>
+    <button class="btn" onclick="newNight()">Start a New Night</button>
+  </div>
+
+</div>
+</div>
+
+<script>
+const users = {};
+let currentUser = null, profile = {}, isLoginMode = false, selectedSex = '';
+let drinkLog = [], sessionStart = null, bacInterval = null, lastAlertLevel = 0;
+
+const DRINKS = {
+  beer:     { name:'Beer',     emoji:'🍺', abv:0.05,  oz:12  },
+  wine:     { name:'Wine',     emoji:'🍷', abv:0.12,  oz:5   },
+  shot:     { name:'Shot',     emoji:'🥃', abv:0.40,  oz:1.5 },
+  cocktail: { name:'Cocktail', emoji:'🍹', abv:0.15,  oz:6   },
+};
+const R = { M:0.68, F:0.55, O:0.60 };
+
+const STATES = [
+  { maxBac:0.04, color:'#3ddba0', shadow:'rgba(61,219,160,0.35)',  icon:'😊', status:'Feeling Great',  alertLevel:0 },
+  { maxBac:0.08, color:'#f5c842', shadow:'rgba(245,200,66,0.35)',  icon:'😄', status:'Good Vibes',     alertLevel:1 },
+  { maxBac:0.12, color:'#f59342', shadow:'rgba(245,147,66,0.35)',  icon:'😅', status:'Getting Loose',  alertLevel:2 },
+  { maxBac:0.16, color:'#f05252', shadow:'rgba(240,82,82,0.35)',   icon:'😵', status:'Pretty Tipsy',   alertLevel:3 },
+  { maxBac:Infinity, color:'#c0392b', shadow:'rgba(192,57,43,0.4)',icon:'🚨', status:'Time to Stop',   alertLevel:4 },
+];
+
+const ALERTS = [
+  null,
+  { icon:'💧', title:'Hydration Check', prompt:'drink some water' },
+  { icon:'🍔', title:'Food Time',        prompt:'grab some food to line their stomach' },
+  { icon:'⚠️', title:'Slow Down',        prompt:'slow down on the drinks' },
+  { icon:'🚨', title:'Stay Safe',        prompt:'stop drinking and make a plan to get home safely' },
+];
+
+function setScreen(name) {
+  document.querySelectorAll('[id^="screen-"]').forEach(s => s.style.display='none');
+  const el = document.getElementById('screen-'+name);
+  el.style.display = 'block';
+  el.classList.remove('screen'); void el.offsetWidth; el.classList.add('screen');
+  const map={auth:0,profile:1,tracker:2,summary:3};
+  const cur=map[name]??0;
+  for(let i=0;i<4;i++){
+    const d=document.getElementById('dot'+i);
+    d.className='step-dot'+(i<cur?' done':i===cur?' active':'');
+  }
+}
+function showError(id,msg){ const e=document.getElementById(id); if(msg)e.textContent=msg; e.classList.add('show'); }
+function clearErrors(){ document.querySelectorAll('.error').forEach(e=>e.classList.remove('show')); }
+
+function toggleMode(){
+  isLoginMode=!isLoginMode;
+  document.getElementById('authTitle').textContent=isLoginMode?'Sign In':'Create Account';
+  document.getElementById('confirmGroup').style.display=isLoginMode?'none':'';
+  document.getElementById('switchText').innerHTML=isLoginMode
+    ?'No account? <span onclick="toggleMode()">Create one</span>'
+    :'Already have an account? <span onclick="toggleMode()">Sign in</span>';
+  clearErrors();
+}
+
+function handleAuth(){
+  clearErrors();
+  const email=document.getElementById('email').value.trim();
+  const pw=document.getElementById('password').value;
+  const cpw=document.getElementById('confirmPassword').value;
+  let ok=true;
+  if(!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){showError('emailError');ok=false;}
+  if(pw.length<6){showError('passwordError');ok=false;}
+  if(!isLoginMode&&pw!==cpw){showError('confirmError');ok=false;}
+  if(!ok)return;
+  if(!isLoginMode){
+    if(users[email]){showError('emailError','Email already registered.');return;}
+    users[email]={password:pw,profile:null};
+  } else {
+    if(!users[email]||users[email].password!==pw){showError('passwordError','Incorrect email or password.');return;}
+    if(users[email].profile){currentUser=email;profile=users[email].profile;startTracker();return;}
+  }
+  currentUser=email; setScreen('profile');
+}
+
+function selectSex(v){
+  selectedSex=v;
+  ['M','F','O'].forEach(s=>document.getElementById('sex'+s).classList.toggle('selected',s===v));
+}
+
+function handleProfile(){
+  clearErrors();
+  const h=+document.getElementById('height').value;
+  const w=+document.getElementById('weight').value;
+  const d=document.getElementById('drinkFreq').value;
+  let ok=true;
+  if(!h||h<48||h>96){showError('heightError');ok=false;}
+  if(!w||w<50||w>500){showError('weightError');ok=false;}
+  if(!selectedSex){showError('sexError');ok=false;}
+  if(!d){showError('drinkError');ok=false;}
+  if(!ok)return;
+  profile={height:h,weight:w,sex:selectedSex,weeklyDrinks:d};
+  users[currentUser].profile=profile;
+  startTracker();
+}
+
+function startTracker(){
+  drinkLog=[];sessionStart=Date.now();lastAlertLevel=0;
+  document.getElementById('userChip').textContent=currentUser.split('@')[0];
+  document.getElementById('logList').innerHTML='<div class="empty-log">No drinks logged yet</div>';
+  updateVibe();
+  setScreen('tracker');
+  if(bacInterval)clearInterval(bacInterval);
+  bacInterval=setInterval(updateVibe,60000);
+}
+
+function calcBAC(){
+  if(!drinkLog.length)return 0;
+  const wg=profile.weight*453.592;
+  const r=R[profile.sex]||0.60;
+  const hrs=(Date.now()-sessionStart)/3600000;
+  let alc=0;
+  drinkLog.forEach(d=>{const dk=DRINKS[d.type];alc+=dk.oz*dk.abv*29.5735*0.789;});
+  return Math.max(0,(alc/(wg*r))*100 - 0.015*hrs);
+}
+
+function updateVibe(){
+  const bac=calcBAC();
+  const state=STATES.find(s=>bac<s.maxBac)||STATES[STATES.length-1];
+  const orb=document.getElementById('orb');
+  orb.style.background=`radial-gradient(circle at 35% 35%, rgba(255,255,255,0.18), transparent 60%), ${state.color}`;
+  orb.style.boxShadow=`0 0 40px ${state.shadow}, 0 0 80px ${state.shadow.replace('0.35','0.1').replace('0.4','0.1')}`;
+  document.getElementById('orbIcon').textContent=state.icon;
+  document.getElementById('vibeStatus').textContent=state.status;
+  document.getElementById('vibeStatus').style.color=state.color;
+  const pct=Math.min((bac/0.20)*100,98);
+  document.getElementById('gaugeCursor').style.left=pct+'%';
+  if(state.alertLevel>0&&state.alertLevel>lastAlertLevel){
+    lastAlertLevel=state.alertLevel;
+    triggerAlert(state.alertLevel);
+  }
+}
+
+function logDrink(type){
+  drinkLog.push({type,time:new Date()});
+  const btn=document.getElementById('btn-'+type);
+  btn.classList.remove('flash'); void btn.offsetWidth; btn.classList.add('flash');
+  const list=document.getElementById('logList');
+  if(list.querySelector('.empty-log'))list.innerHTML='';
+  const t=drinkLog[drinkLog.length-1].time.toLocaleTimeString([],{hour:'2-digit',minute:'2-digit'});
+  const item=document.createElement('div');
+  item.className='log-item';
+  item.innerHTML=`<span>${DRINKS[type].emoji} ${DRINKS[type].name}</span><span class="log-time">${t}</span>`;
+  list.prepend(item);
+  updateVibe();
+}
+
+function triggerAlert(level){
+  const a=ALERTS[level]; if(!a)return;
+  document.getElementById('popupIcon').textContent=a.icon;
+  document.getElementById('popupTitle').textContent=a.title;
+  document.getElementById('popupMsg').textContent='';
+  document.getElementById('popupLoading').classList.remove('hidden');
+  document.getElementById('popup').classList.remove('hidden');
+  fetchNudge(a,level);
+}
+
+async function fetchNudge(a,level){
+  const name=currentUser.split('@')[0];
+  const sex=profile.sex==='M'?'male':profile.sex==='F'?'female':'person';
+  const dlist=drinkLog.map(d=>DRINKS[d.type].name).join(', ')||'a few drinks';
+  const prompt=`You are Bar Buddy, a warm, witty, caring drinking companion app. The user is ${name}, a ${sex}, ${profile.weight}lbs. They've had: ${dlist}. Alert level: ${level}/4. Nudge them to ${a.prompt}. Write exactly 2 short, friendly sentences. Be warm and slightly playful — not preachy. One relevant emoji. Max 35 words total.`;
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:80,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const msg=data.content?.map(b=>b.text||'').join('')||getFallback(level);
+    document.getElementById('popupLoading').classList.add('hidden');
+    document.getElementById('popupMsg').textContent=msg;
+  }catch{
+    document.getElementById('popupLoading').classList.add('hidden');
+    document.getElementById('popupMsg').textContent=getFallback(level);
+  }
+}
+
+function getFallback(level){
+  return[
+    '',
+    '💧 Time to hydrate! Grab a water — your future self will seriously thank you.',
+    '🍔 Your stomach is calling! Eating now will slow things down nicely.',
+    '🐢 You\'re doing great — how about slowing down a little for the next round?',
+    '🛑 It\'s been a big night. Let\'s make sure you have a safe way home, okay?',
+  ][level];
+}
+
+function closePopup(){ document.getElementById('popup').classList.add('hidden'); }
+
+function endNight(){
+  if(bacInterval)clearInterval(bacInterval);
+  const bac=calcBAC();
+  const total=drinkLog.length;
+  const hrs=((Date.now()-sessionStart)/3600000).toFixed(1);
+  const state=STATES.find(s=>bac<s.maxBac)||STATES[STATES.length-1];
+  const safe=bac<0.05;
+  document.getElementById('summaryContent').innerHTML=`
+    <div style="display:flex;justify-content:center;gap:12px;flex-wrap:wrap;margin-bottom:16px;">
+      <div class="summary-stat"><div class="s-num">${total}</div><div class="s-lbl">Drinks</div></div>
+      <div class="summary-stat"><div class="s-num">${hrs}h</div><div class="s-lbl">Out</div></div>
+      <div class="summary-stat" style="border-color:${state.color}22;">
+        <div class="s-num" style="color:${state.color};font-size:1.4rem;">${state.icon}</div>
+        <div class="s-lbl">${state.status}</div>
+      </div>
+    </div>
+    <p class="summary-msg">${safe
+      ?'You had a great, responsible night. Sleep well! 🌟'
+      :'Please don\'t drive — grab a rideshare or call a friend. Stay safe out there. 🚕'
+    }</p>`;
+  setScreen('summary');
+}
+
+function newNight(){ startTracker(); }
+</script>
+</body>
+</html>
