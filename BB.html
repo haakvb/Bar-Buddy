@@ -1,0 +1,1083 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0a0a0f">
+  <meta name="description" content="Track your BAC in real time throughout the night.">
+  <title>Bar Buddy — BAC Tracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bg: #0a0a0f;
+      --bg2: #12121a;
+      --bg3: #1a1a26;
+      --border: rgba(255,255,255,0.08);
+      --border2: rgba(255,255,255,0.14);
+      --text: #f0f0f5;
+      --text2: #8888a0;
+      --text3: #55556a;
+      --accent: #7b6fff;
+      --accent2: #a89fff;
+      --green: #3ecf8e;
+      --amber: #f5a623;
+      --red: #ff4d4d;
+      --mono: 'DM Mono', monospace;
+      --sans: 'Syne', sans-serif;
+      --radius: 14px;
+      --radius-sm: 8px;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    header {
+      width: 100%;
+      max-width: 520px;
+      padding: 2rem 1.5rem 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 18px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      color: var(--text);
+    }
+
+    .logo span { color: var(--accent); }
+
+    .live-badge {
+      display: none;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text2);
+      letter-spacing: 0.05em;
+    }
+
+    .live-badge.visible { display: flex; }
+
+    .live-dot {
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+
+    main {
+      width: 100%;
+      max-width: 520px;
+      padding: 1.5rem;
+      flex: 1;
+    }
+
+    .screen { display: none; }
+    .screen.active { display: block; }
+
+    /* ── SETUP SCREEN ── */
+    .setup-hero {
+      text-align: center;
+      padding: 2rem 0 2.5rem;
+    }
+
+    .setup-hero h1 {
+      font-size: 36px;
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.1;
+      margin-bottom: 10px;
+    }
+
+    .setup-hero p {
+      font-size: 14px;
+      color: var(--text2);
+      line-height: 1.6;
+    }
+
+    .card {
+      background: var(--bg2);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      margin-bottom: 1rem;
+    }
+
+    .card-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 1rem;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 1.25rem;
+    }
+
+    .field { display: flex; flex-direction: column; gap: 6px; }
+
+    .field label {
+      font-size: 12px;
+      color: var(--text2);
+      font-family: var(--mono);
+    }
+
+    input[type="number"], input[type="text"], select {
+      background: var(--bg3);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 14px;
+      padding: 10px 12px;
+      width: 100%;
+      outline: none;
+      transition: border-color 0.15s;
+    }
+
+    input:focus, select:focus { border-color: var(--accent); }
+
+    select option { background: var(--bg2); }
+
+    .seg {
+      display: flex;
+      background: var(--bg3);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+    }
+
+    .seg-btn {
+      flex: 1;
+      padding: 10px;
+      background: transparent;
+      border: none;
+      color: var(--text2);
+      font-family: var(--sans);
+      font-size: 13px;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+
+    .seg-btn.on {
+      background: var(--accent);
+      color: #fff;
+      font-weight: 500;
+    }
+
+    .start-btn {
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius);
+      font-family: var(--sans);
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      cursor: pointer;
+      transition: opacity 0.15s, transform 0.1s;
+    }
+
+    .start-btn:hover { opacity: 0.9; }
+    .start-btn:active { transform: scale(0.98); }
+
+    /* ── TRACKING SCREEN ── */
+    .bac-hero {
+      text-align: center;
+      padding: 1.5rem 0 1rem;
+      position: relative;
+    }
+
+    .bac-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text3);
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      margin-bottom: 1.2rem;
+    }
+
+    .gauge-wrap {
+      position: relative;
+      width: 280px;
+      margin: 0 auto;
+    }
+
+    .gauge-svg { width: 100%; display: block; }
+
+    .gauge-needle {
+      transform-origin: 140px 148px;
+      transform: rotate(-90deg);
+      transition: transform 0.7s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+
+    .gauge-zone-labels {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 12px;
+      margin-top: 2px;
+    }
+
+    .gauge-zone-labels span {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text3);
+    }
+
+    .status-pill {
+      display: inline-block;
+      margin-top: 14px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-family: var(--mono);
+      letter-spacing: 0.04em;
+      transition: all 0.3s;
+    }
+
+    .stats-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin: 1rem 0;
+    }
+
+    .stat {
+      background: var(--bg2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 12px;
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 5px;
+    }
+
+    .stat-val {
+      font-size: 20px;
+      font-family: var(--mono);
+      font-weight: 500;
+      color: var(--text);
+    }
+
+
+
+    .add-section { margin: 1rem 0; }
+
+    .section-label {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text3);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
+
+    .drink-grid {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .drink-btn {
+      background: var(--bg2);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius);
+      color: var(--text2);
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 14px 6px 10px;
+      cursor: pointer;
+      text-align: center;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s;
+    }
+
+    .drink-btn:hover {
+      background: var(--bg3);
+      border-color: var(--accent);
+      color: var(--accent2);
+    }
+
+    .drink-btn:active { transform: scale(0.96); }
+    .drink-btn.active { border-color: var(--accent); color: var(--accent2); background: var(--bg3); }
+
+    .drink-icon {
+      width: 28px;
+      height: 28px;
+      color: currentColor;
+    }
+
+    .drink-btn-name {
+      display: block;
+      font-weight: 500;
+      font-size: 12px;
+      color: var(--text);
+    }
+
+    .drink-btn-info {
+      display: block;
+      font-size: 10px;
+      color: var(--text3);
+    }
+
+    .submenu-panel {
+      display: none;
+      background: var(--bg2);
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .submenu-panel.open { display: block; animation: slideIn 0.2s ease; }
+
+    .submenu-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px 10px;
+      border-bottom: 0.5px solid var(--border);
+    }
+
+    .submenu-title {
+      font-size: 13px;
+      font-weight: 500;
+      color: var(--text);
+      font-family: var(--mono);
+      letter-spacing: 0.02em;
+    }
+
+    .submenu-close {
+      background: none;
+      border: none;
+      color: var(--text3);
+      cursor: pointer;
+      font-size: 14px;
+      padding: 2px 6px;
+      border-radius: 4px;
+      line-height: 1;
+    }
+
+    .submenu-close:hover { color: var(--text); background: var(--bg3); }
+
+    .submenu-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .sub-btn {
+      background: var(--bg3);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text);
+      font-family: var(--mono);
+      font-size: 13px;
+      padding: 12px 10px;
+      cursor: pointer;
+      text-align: left;
+      transition: all 0.15s;
+      display: flex;
+      flex-direction: column;
+      gap: 3px;
+    }
+
+    .sub-btn:hover { border-color: var(--accent); color: var(--accent2); background: var(--bg2); }
+    .sub-btn:active { transform: scale(0.97); }
+
+    .sub-btn-name { font-weight: 500; font-size: 13px; }
+    .sub-btn-detail { font-size: 10px; color: var(--text3); }
+    .sub-btn:hover .sub-btn-detail { color: var(--accent); opacity: 0.7; }
+
+    .custom-input-wrap { padding: 12px; border-top: 0.5px solid var(--border); }
+
+    .add-drink-btn {
+      padding: 10px 16px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: var(--radius-sm);
+      font-family: var(--sans);
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      white-space: nowrap;
+      transition: opacity 0.15s;
+    }
+
+    .add-drink-btn:hover { opacity: 0.85; }
+
+    .log-section { margin: 1.25rem 0; }
+
+    .log-wrap {
+      background: var(--bg2);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    .log-head {
+      display: grid;
+      grid-template-columns: 1fr 60px 50px 60px 28px;
+      gap: 6px;
+      padding: 8px 14px;
+      background: var(--bg3);
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--text3);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    .log-row {
+      display: grid;
+      grid-template-columns: 1fr 60px 50px 60px 28px;
+      gap: 6px;
+      padding: 11px 14px;
+      border-top: 0.5px solid var(--border);
+      font-size: 13px;
+      align-items: center;
+      animation: slideIn 0.2s ease;
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(-6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .log-empty {
+      padding: 20px 14px;
+      font-size: 13px;
+      color: var(--text3);
+      text-align: center;
+      font-family: var(--mono);
+    }
+
+    .log-drink-name { font-weight: 500; color: var(--text); }
+    .log-time { color: var(--text3); font-family: var(--mono); font-size: 11px; }
+    .log-num { font-family: var(--mono); color: var(--text2); }
+
+    .del-btn {
+      background: none;
+      border: none;
+      cursor: pointer;
+      color: var(--text3);
+      font-size: 16px;
+      padding: 2px;
+      border-radius: 4px;
+      line-height: 1;
+      transition: color 0.15s;
+    }
+
+    .del-btn:hover { color: var(--red); }
+
+    .end-btn {
+      width: 100%;
+      padding: 12px;
+      background: transparent;
+      border: 0.5px solid var(--border2);
+      border-radius: var(--radius);
+      color: var(--text2);
+      font-family: var(--sans);
+      font-size: 13px;
+      cursor: pointer;
+      margin-top: 1.5rem;
+      transition: all 0.15s;
+    }
+
+    .end-btn:hover { background: var(--bg2); color: var(--red); border-color: var(--red); }
+
+    .disclaimer {
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text3);
+      line-height: 1.7;
+      margin-top: 1rem;
+      padding: 1rem;
+      background: var(--bg2);
+      border-radius: var(--radius-sm);
+      border-left: 2px solid var(--border2);
+    }
+
+    footer {
+      width: 100%;
+      max-width: 520px;
+      padding: 1rem 1.5rem 2rem;
+      font-size: 11px;
+      font-family: var(--mono);
+      color: var(--text3);
+      text-align: center;
+    }
+
+    .gauge-wrap {
+      position: relative;
+      width: 280px;
+      margin: 0 auto;
+    }
+    .gauge-svg { width: 100%; display: block; }
+    .gauge-needle {
+      transform-origin: 140px 148px;
+      transform: rotate(-90deg);
+      transition: transform 0.7s cubic-bezier(0.34, 1.4, 0.64, 1);
+    }
+    .gauge-zone-labels {
+      display: flex;
+      justify-content: space-between;
+      padding: 0 4px;
+      margin-top: 6px;
+      gap: 2px;
+    }
+    .gauge-zone-labels span {
+      font-size: 9px;
+      font-family: var(--mono);
+      text-align: center;
+      flex: 1;
+    }
+
+    @media (max-width: 420px) {
+      .drink-grid { grid-template-columns: repeat(3, 1fr); }
+      .gauge-wrap { width: 240px; }
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">Bar<span>Buddy</span></div>
+  <div class="live-badge" id="live-badge">
+    <div class="live-dot"></div>
+    LIVE
+  </div>
+</header>
+
+<main>
+
+  <!-- SETUP SCREEN -->
+  <div class="screen active" id="screen-setup">
+    <div class="setup-hero">
+      <h1>Track your BAC<br>in real time.</h1>
+      <p>Set up your profile, press start,<br>and log drinks as you go.</p>
+    </div>
+
+    <div class="card">
+      <div class="card-label">Your profile</div>
+      <div class="field-grid">
+        <div class="field">
+          <label>Weight</label>
+          <div style="display:flex;gap:6px;">
+            <input type="number" id="s-weight" value="160" min="50" max="400" style="flex:1;">
+            <select id="s-unit" style="width:62px;">
+              <option value="lbs">lbs</option>
+              <option value="kg">kg</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Sex</label>
+          <div class="seg">
+            <button class="seg-btn on" id="s-gm" onclick="setGender('male')">Male</button>
+            <button class="seg-btn" id="s-gf" onclick="setGender('female')">Female</button>
+          </div>
+        </div>
+      </div>
+      <button class="start-btn" onclick="startNight()">Start my night</button>
+    </div>
+
+    <div class="disclaimer">
+      BAC estimates use the Widmark formula. Results vary based on food, hydration, and individual metabolism. Never use this to decide whether to drive.
+    </div>
+  </div>
+
+  <!-- TRACKING SCREEN -->
+  <div class="screen" id="screen-tracking">
+
+    <div class="bac-hero">
+      <div class="bac-label">Your level</div>
+      <div class="gauge-wrap">
+        <svg class="gauge-svg" viewBox="0 0 280 160" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+              <stop offset="0%"    stop-color="#6b7280"/>
+              <stop offset="11.8%" stop-color="#6b7280"/>
+              <stop offset="11.9%" stop-color="#3ecf8e"/>
+              <stop offset="39.9%" stop-color="#3ecf8e"/>
+              <stop offset="40.0%" stop-color="#f5a623"/>
+              <stop offset="56.9%" stop-color="#f5a623"/>
+              <stop offset="57.0%" stop-color="#ff4d4d"/>
+              <stop offset="100%"  stop-color="#ff4d4d"/>
+            </linearGradient>
+          </defs>
+          <path d="M 20 148 A 120 120 0 0 1 260 148"
+                fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="22" stroke-linecap="round"/>
+          <path d="M 20 148 A 120 120 0 0 1 260 148"
+                fill="none" stroke="url(#gaugeGrad)" stroke-width="22" stroke-linecap="round"/>
+          <line x1="140" y1="148" x2="140" y2="28"
+                stroke="rgba(10,10,15,0.9)" stroke-width="3"
+                transform="rotate(-68.6 140 148)"/>
+          <line x1="140" y1="148" x2="140" y2="28"
+                stroke="rgba(10,10,15,0.9)" stroke-width="3"
+                transform="rotate(-18.0 140 148)"/>
+          <line x1="140" y1="148" x2="140" y2="28"
+                stroke="rgba(10,10,15,0.9)" stroke-width="3"
+                transform="rotate(12.6 140 148)"/>
+          <g class="gauge-needle" id="gauge-needle">
+            <line x1="140" y1="148" x2="140" y2="44"
+                  stroke="#f0f0f5" stroke-width="2.5" stroke-linecap="round"/>
+            <circle cx="140" cy="148" r="7" fill="#f0f0f5"/>
+            <circle cx="140" cy="148" r="3.5" fill="#0a0a0f"/>
+          </g>
+        </svg>
+        <div class="gauge-zone-labels">
+          <span style="color:#6b7280;">Sipping Easy</span>
+          <span style="color:#3ecf8e;">Perfect Buzz</span>
+          <span style="color:#f5a623;">Danger</span>
+          <span style="color:#ff4d4d;">Take a Break</span>
+        </div>
+      </div>
+      <div><span class="status-pill" id="t-pill" style="background:rgba(62,207,142,0.15);color:#3ecf8e;">Add a drink to start</span></div>
+    </div>
+
+    <div class="stats-row">
+      <div class="stat">
+        <div class="stat-label">Hours out</div>
+        <div class="stat-val" id="t-hours">0.0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Std drinks</div>
+        <div class="stat-val" id="t-drinks">0.0</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Sober by</div>
+        <div class="stat-val" id="t-sober" style="font-size:14px;">—</div>
+      </div>
+    </div>
+
+
+
+    <div class="add-section">
+      <div class="section-label">Add a drink</div>
+
+      <!-- Main category buttons -->
+      <div class="drink-grid">
+        <button class="drink-btn" id="cat-beer" onclick="openMenu('beer')">
+          <svg class="drink-icon" viewBox="0 0 24 24" fill="none"><path d="M6 2h9l1 4H5L6 2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M5 6h10l-1.5 14H6.5L5 6z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M15 9h3a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 10 Q9 13 8 16" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.5"/></svg>
+          <span class="drink-btn-name">Beer</span>
+          <span class="drink-btn-info">Tap to choose</span>
+        </button>
+        <button class="drink-btn" id="cat-wine" onclick="openMenu('wine')">
+          <svg class="drink-icon" viewBox="0 0 24 24" fill="none"><path d="M8 2h8v6a4 4 0 0 1-8 0V2z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M12 12v8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 20h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 7 Q12 10 16 7" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.5"/></svg>
+          <span class="drink-btn-name">Wine</span>
+          <span class="drink-btn-info">Tap to choose</span>
+        </button>
+        <button class="drink-btn" id="cat-cocktail" onclick="openMenu('cocktail')">
+          <svg class="drink-icon" viewBox="0 0 24 24" fill="none"><path d="M4 3h16L12 13v7" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 20h6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M8 7l2 2" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.5"/></svg>
+          <span class="drink-btn-name">Cocktail</span>
+          <span class="drink-btn-info">Tap to choose</span>
+        </button>
+        <button class="drink-btn" id="cat-shot" onclick="openMenu('shot')">
+          <svg class="drink-icon" viewBox="0 0 24 24" fill="none"><path d="M8 3h8v2l-1 13H9L8 5V3z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><path d="M8 3h8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M10 8 Q11 11 10 14" stroke="currentColor" stroke-width="1" stroke-linecap="round" opacity="0.5"/></svg>
+          <span class="drink-btn-name">Shot</span>
+          <span class="drink-btn-info">Tap to choose</span>
+        </button>
+        <button class="drink-btn" id="cat-other" onclick="openMenu('other')">
+          <svg class="drink-icon" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.5"/><path d="M12 8v4M12 16v.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+          <span class="drink-btn-name">Other</span>
+          <span class="drink-btn-info">Custom</span>
+        </button>
+      </div>
+
+      <!-- Submenu panel -->
+      <div class="submenu-panel" id="submenu-panel">
+        <div class="submenu-header">
+          <span class="submenu-title" id="submenu-title">Choose a beer</span>
+          <button class="submenu-close" onclick="closeMenu()">✕</button>
+        </div>
+        <div class="submenu-options" id="submenu-options"></div>
+
+        <!-- Custom input (shown for "other" options within a category) -->
+        <div class="custom-input-wrap" id="custom-input-wrap" style="display:none;">
+          <div class="field" style="margin-bottom:10px;">
+            <label id="custom-name-label">Name</label>
+            <input type="text" id="c-name" placeholder="e.g. Craft IPA">
+          </div>
+          <div class="field" style="margin-bottom:12px;">
+            <label>ABV %</label>
+            <input type="number" id="c-abv" value="5" min="0.1" max="100" step="0.1">
+          </div>
+          <div style="display:flex;gap:8px;">
+            <button class="add-drink-btn" style="flex:1;" onclick="addCustom()">+ Add drink</button>
+            <button onclick="hideCustomInput()" style="padding:10px 14px;background:transparent;border:0.5px solid var(--border2);border-radius:var(--radius-sm);color:var(--text2);cursor:pointer;font-family:var(--sans);font-size:13px;">Back</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="log-section">
+      <div class="section-label">Drink log</div>
+      <div class="log-wrap">
+        <div class="log-head">
+          <span>Drink</span><span>Time</span><span>Oz</span><span>ABV</span><span></span>
+        </div>
+        <div id="t-log">
+          <div class="log-empty">No drinks logged yet.</div>
+        </div>
+      </div>
+    </div>
+
+    <button class="end-btn" onclick="endNight()">End night &amp; reset</button>
+
+    <div class="disclaimer" style="margin-top:1rem;">
+      Formula: BAC = ((A × 5.14) / (W × r)) − (0.015 × T) &nbsp;·&nbsp; r = 0.73 male / 0.66 female.<br>
+      Gauge updates every 10 seconds. Drinks absorb gradually over 30 min. Estimate only — do not use to determine fitness to drive.
+    </div>
+  </div>
+
+</main>
+
+<footer>Bar Buddy &copy; 2026 &nbsp;·&nbsp; Drink responsibly.</footer>
+
+<script>
+  let gender = 'male';
+  let weightLbs = 160;
+  let nightStart = null;
+  let drinks = [];
+  let ticker = null;
+
+  function setGender(g) {
+    gender = g;
+    document.getElementById('s-gm').classList.toggle('on', g === 'male');
+    document.getElementById('s-gf').classList.toggle('on', g === 'female');
+  }
+
+  function startNight() {
+    const w = parseFloat(document.getElementById('s-weight').value) || 160;
+    const u = document.getElementById('s-unit').value;
+    weightLbs = u === 'kg' ? w * 2.20462 : w;
+    nightStart = Date.now();
+    drinks = [];
+    document.getElementById('screen-setup').classList.remove('active');
+    document.getElementById('screen-tracking').classList.add('active');
+    document.getElementById('live-badge').classList.add('visible');
+    tick();
+    ticker = setInterval(tick, 10000);
+  }
+
+  function endNight() {
+    if (!confirm('End your night and reset everything?')) return;
+    clearInterval(ticker);
+    ticker = null;
+    nightStart = null;
+    drinks = [];
+    document.getElementById('screen-tracking').classList.remove('active');
+    document.getElementById('screen-setup').classList.add('active');
+    document.getElementById('live-badge').classList.remove('visible');
+  }
+
+  function hoursElapsed() {
+    return (Date.now() - nightStart) / 3600000;
+  }
+
+  const ABSORPTION_MINS = 30;
+
+  function stdDrinks(oz, abv) {
+    return (oz * (abv / 100)) / 0.6;
+  }
+
+  function calcBAC() {
+    const r = gender === 'male' ? 0.73 : 0.66;
+    const now = Date.now();
+    const hoursOut = (now - nightStart) / 3600000;
+    let absorbedStd = 0;
+    for (const d of drinks) {
+      const std = stdDrinks(d.oz, d.abv);
+      const minsSinceDrink = (now - d.ts) / 60000;
+      const absorptionFraction = Math.min(1, Math.max(0, minsSinceDrink / ABSORPTION_MINS));
+      absorbedStd += std * absorptionFraction;
+    }
+    const bac = ((absorbedStd * 5.14) / (weightLbs * r)) - (0.015 * hoursOut);
+    return Math.max(0, bac);
+  }
+
+  function fmtTime(ts) {
+    const d = new Date(ts);
+    let h = d.getHours(), m = d.getMinutes();
+    const ap = h >= 12 ? 'PM' : 'AM';
+    h = h % 12 || 12;
+    return h + ':' + m.toString().padStart(2, '0') + ' ' + ap;
+  }
+
+  function soberTime(bac) {
+    if (bac <= 0 && drinks.length === 0) return '—';
+    // Project forward: find when BAC will hit 0 accounting for remaining absorption
+    const r = gender === 'male' ? 0.73 : 0.66;
+    let t = 0;
+    for (let step = 0; step < 1200; step++) {
+      t += 0.5 / 60; // 30-second steps
+      const futureNow = Date.now() + t * 3600000;
+      const hoursOut = (futureNow - nightStart) / 3600000;
+      let absorbedStd = 0;
+      for (const d of drinks) {
+        const std = stdDrinks(d.oz, d.abv);
+        const minsSince = (futureNow - d.ts) / 60000;
+        absorbedStd += std * Math.min(1, Math.max(0, minsSince / ABSORPTION_MINS));
+      }
+      const futureBac = ((absorbedStd * 5.14) / (weightLbs * r)) - (0.015 * hoursOut);
+      if (futureBac <= 0) return fmtTime(Date.now() + t * 3600000);
+    }
+    return '10h+';
+  }
+
+  const MENUS = {
+    beer: {
+      title: 'Choose your beer',
+      options: [
+        { name: 'Light Beer', oz: 12, abv: 4.2, detail: '12oz · 4.2%' },
+        { name: 'IPA',        oz: 12, abv: 7.0, detail: '12oz · 7%' },
+        { name: 'Stout',      oz: 12, abv: 5.5, detail: '12oz · 5.5%' },
+        { name: 'Other Beer', oz: 12, abv: null, detail: 'Enter ABV', custom: true, namePlaceholder: 'e.g. Craft Lager', nameLabel: 'Beer name', defaultAbv: 5 }
+      ]
+    },
+    wine: {
+      title: 'Choose your wine',
+      options: [
+        { name: 'Red Wine',    oz: 5, abv: 13.5, detail: '5oz · 13.5%' },
+        { name: 'White Wine',  oz: 5, abv: 12.0, detail: '5oz · 12%' },
+        { name: 'Rosé',        oz: 5, abv: 11.5, detail: '5oz · 11.5%' },
+        { name: 'Other Wine',  oz: 5, abv: null,  detail: 'Enter ABV', custom: true, namePlaceholder: 'e.g. Prosecco', nameLabel: 'Wine name', defaultAbv: 12 }
+      ]
+    },
+    cocktail: {
+      title: 'Choose your cocktail',
+      options: [
+        { name: 'Margarita',   oz: 4, abv: 15.0, detail: '4oz · 15%' },
+        { name: 'Vodka Soda',  oz: 6, abv: 8.0,  detail: '6oz · 8%' },
+        { name: 'Old Fashioned', oz: 3, abv: 28.0, detail: '3oz · 28%' },
+        { name: 'Other Cocktail', oz: 4, abv: null, detail: 'Enter ABV', custom: true, namePlaceholder: 'e.g. Espresso Martini', nameLabel: 'Cocktail name', defaultAbv: 15 }
+      ]
+    },
+    shot: {
+      title: 'Choose your shot',
+      options: [
+        { name: 'Whiskey',   oz: 1.5, abv: 40.0, detail: '1.5oz · 40%' },
+        { name: 'Tequila',   oz: 1.5, abv: 40.0, detail: '1.5oz · 40%' },
+        { name: 'Vodka',     oz: 1.5, abv: 40.0, detail: '1.5oz · 40%' },
+        { name: 'Other Shot', oz: 1.5, abv: null, detail: 'Enter ABV', custom: true, namePlaceholder: 'e.g. Rumple Minze', nameLabel: 'Shot name', defaultAbv: 40 }
+      ]
+    },
+    other: {
+      title: 'What are you drinking?',
+      options: [],
+      customOnly: true,
+      namePlaceholder: 'e.g. Hard Seltzer',
+      nameLabel: 'Drink name',
+      defaultAbv: 5,
+      defaultOz: 12
+    }
+  };
+
+  let activeMenu = null;
+  let customOz = 12;
+
+  function openMenu(cat) {
+    activeMenu = cat;
+    const menu = MENUS[cat];
+    const panel = document.getElementById('submenu-panel');
+    const optionsEl = document.getElementById('submenu-options');
+    const customWrap = document.getElementById('custom-input-wrap');
+
+    document.getElementById('submenu-title').textContent = menu.title;
+
+    // Highlight active category button
+    document.querySelectorAll('.drink-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('cat-' + cat).classList.add('active');
+
+    if (menu.customOnly) {
+      optionsEl.style.display = 'none';
+      customWrap.style.display = 'block';
+      customOz = menu.defaultOz || 12;
+      document.getElementById('c-name').placeholder = menu.namePlaceholder;
+      document.getElementById('custom-name-label').textContent = menu.nameLabel;
+      document.getElementById('c-abv').value = menu.defaultAbv || 5;
+      document.getElementById('c-name').value = '';
+      setTimeout(() => document.getElementById('c-name').focus(), 150);
+    } else {
+      customWrap.style.display = 'none';
+      optionsEl.style.display = 'grid';
+      optionsEl.innerHTML = menu.options.map((opt, i) => {
+        if (opt.custom) {
+          return `<button class="sub-btn" onclick="showCustomInput(${i})">
+            <span class="sub-btn-name">${opt.name}</span>
+            <span class="sub-btn-detail">${opt.detail}</span>
+          </button>`;
+        }
+        return `<button class="sub-btn" onclick="qAdd('${opt.name}', ${opt.oz}, ${opt.abv})">
+          <span class="sub-btn-name">${opt.name}</span>
+          <span class="sub-btn-detail">${opt.detail}</span>
+        </button>`;
+      }).join('');
+    }
+
+    panel.classList.add('open');
+  }
+
+  function showCustomInput(optIdx) {
+    const menu = MENUS[activeMenu];
+    const opt = menu.options[optIdx];
+    customOz = opt.oz;
+    document.getElementById('submenu-options').style.display = 'none';
+    const customWrap = document.getElementById('custom-input-wrap');
+    customWrap.style.display = 'block';
+    document.getElementById('c-name').placeholder = opt.namePlaceholder;
+    document.getElementById('custom-name-label').textContent = opt.nameLabel;
+    document.getElementById('c-abv').value = opt.defaultAbv;
+    document.getElementById('c-name').value = '';
+    setTimeout(() => document.getElementById('c-name').focus(), 100);
+  }
+
+  function hideCustomInput() {
+    document.getElementById('custom-input-wrap').style.display = 'none';
+    if (!MENUS[activeMenu].customOnly) {
+      document.getElementById('submenu-options').style.display = 'grid';
+    } else {
+      closeMenu();
+    }
+  }
+
+  function closeMenu() {
+    document.getElementById('submenu-panel').classList.remove('open');
+    document.getElementById('custom-input-wrap').style.display = 'none';
+    document.getElementById('submenu-options').style.display = 'grid';
+    document.querySelectorAll('.drink-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('c-name').value = '';
+    activeMenu = null;
+  }
+
+  function qAdd(name, oz, abv) {
+    drinks.push({ name, oz, abv, ts: Date.now(), id: Date.now() + Math.random() });
+    closeMenu();
+    renderLog();
+    tick();
+  }
+
+  function addCustom() {
+    const name = document.getElementById('c-name').value.trim() || (activeMenu ? activeMenu.charAt(0).toUpperCase() + activeMenu.slice(1) : 'Drink');
+    const abv = parseFloat(document.getElementById('c-abv').value) || 5;
+    const oz = customOz || 12;
+    drinks.push({ name, oz, abv, ts: Date.now(), id: Date.now() + Math.random() });
+    closeMenu();
+    renderLog();
+    tick();
+  }
+
+  function removeDrink(id) {
+    drinks = drinks.filter(d => d.id !== id);
+    renderLog();
+    tick();
+  }
+
+  function renderLog() {
+    const el = document.getElementById('t-log');
+    if (drinks.length === 0) {
+      el.innerHTML = '<div class="log-empty">No drinks logged yet.</div>';
+      return;
+    }
+    el.innerHTML = [...drinks].reverse().map(d => {
+      const std = stdDrinks(d.oz, d.abv).toFixed(2);
+      return `<div class="log-row">
+        <span class="log-drink-name">${d.name}</span>
+        <span class="log-time">${fmtTime(d.ts)}</span>
+        <span class="log-num">${d.oz}</span>
+        <span class="log-num">${d.abv}%</span>
+        <button class="del-btn" onclick="removeDrink(${d.id})">×</button>
+      </div>`;
+    }).join('');
+  }
+
+  function tick() {
+    if (!nightStart) return;
+    const hours = hoursElapsed();
+    const totalStd = drinks.reduce((s, d) => s + stdDrinks(d.oz, d.abv), 0);
+    const bac = calcBAC();
+
+    // Needle mapping — visually inflated yellow zone, BAC thresholds unchanged:
+    // Gray  (Sipping Easy):    0.000–0.019 → -90.0 to -68.6deg (21.4deg span)
+    // Green (Perfect Buzz):    0.020–0.065 → -68.6 to -18.0deg (50.6deg span)
+    // Yellow (Hangover Danger): 0.066–0.080 → -18.0 to +12.6deg (30.6deg span, visually wider)
+    // Red   (Take a Break):    0.080+      → +12.6 to +90.0deg (77.4deg span)
+    let angle;
+    if (bac <= 0.019) {
+      angle = -90 + (bac / 0.019) * 21.4;
+    } else if (bac <= 0.065) {
+      angle = -68.6 + ((bac - 0.019) / 0.046) * 50.6;
+    } else if (bac <= 0.080) {
+      angle = -18.0 + ((bac - 0.065) / 0.015) * 30.6;
+    } else {
+      const redMax = 0.16;
+      angle = 12.6 + (Math.min(bac - 0.080, redMax - 0.080) / (redMax - 0.080)) * 77.4;
+    }
+    const needle = document.getElementById('gauge-needle');
+    if (needle) needle.style.transform = `rotate(${angle.toFixed(1)}deg)`;
+
+    document.getElementById('t-hours').textContent = hours.toFixed(1);
+    document.getElementById('t-drinks').textContent = totalStd.toFixed(1);
+    document.getElementById('t-sober').textContent = soberTime(bac);
+
+    const pill = document.getElementById('t-pill');
+    if (drinks.length === 0) {
+      pill.style.background = 'rgba(107,114,128,0.15)'; pill.style.color = '#9ca3af';
+      pill.textContent = 'Add a drink to start';
+    } else if (bac <= 0.019) {
+      pill.style.background = 'rgba(107,114,128,0.15)'; pill.style.color = '#9ca3af';
+      pill.textContent = 'Sipping Easy';
+    } else if (bac <= 0.065) {
+      pill.style.background = 'rgba(62,207,142,0.15)'; pill.style.color = '#3ecf8e';
+      pill.textContent = 'The Perfect Buzz';
+    } else if (bac <= 0.080) {
+      pill.style.background = 'rgba(245,166,35,0.15)'; pill.style.color = '#f5a623';
+      pill.textContent = 'Hangover Danger';
+    } else {
+      pill.style.background = 'rgba(255,77,77,0.15)'; pill.style.color = '#ff4d4d';
+      pill.textContent = 'Take a Break';
+    }
+  }
+</script>
+</body>
+</html>
